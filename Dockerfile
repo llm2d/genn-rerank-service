@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy the current directory contents into the container's working directory
 COPY . /app
 
+# Set the pip source to Tsinghua mirror
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
 # Install the project dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
