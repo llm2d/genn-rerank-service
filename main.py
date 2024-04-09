@@ -21,7 +21,7 @@ security = HTTPBearer()
 
 # constants
 # RERANK_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/maidalun1020/bce-reranker-base_v1")
-RERANK_MODEL_PATH = "maidalun1020/bce-reranker-base_v1"
+# RERANK_MODEL_PATH = "maidalun1020/bce-reranker-base_v1"
 env_bearer_token = "genn"
 
 
@@ -59,7 +59,8 @@ class Singleton(type):
 
 
 class Reranker(metaclass=Singleton):
-    def __init__(self, model_path):
+    def __init__(self):
+        model_path = get_rerank_model_path()
         self.reranker = FlagReranker(model_path, use_fp16=False)
 
     def compute_score(self, pairs: List[List[str]]):
@@ -73,8 +74,8 @@ class Reranker(metaclass=Singleton):
 
 
 class Chat(object):
-    def __init__(self, rerank_model_path: str = RERANK_MODEL_PATH):
-        self.reranker = Reranker(rerank_model_path)
+    def __init__(self):
+        self.reranker = Reranker()
 
     def fit_query_answer_rerank(self, query_docs: QADocs) -> List:
         if query_docs is None or len(query_docs.inputs) == 0:
@@ -101,6 +102,12 @@ logging.basicConfig(
     format="%(levelname)s: %(asctime)s - %(filename)s:%(lineno)d - %(message)s"
 )
 
+def get_rerank_model_path():
+    local_model_path = os.path.join(os.path.dirname(__file__), "models/maidalun1020/bce-reranker-base_v1")
+    if os.path.exists(local_model_path) and os.path.exists(os.path.join(local_model_path, "tokenizer.json")) and os.path.exists(os.path.join(local_model_path, "pytorch_model.bin")):
+        return local_model_path
+    else:
+        return "maidalun1020/bce-reranker-base_v1"
 
 @app.middleware("http")
 async def measure_response_time(request: Request, call_next):
